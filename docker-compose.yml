@@ -1,0 +1,52 @@
+version: "3.7"
+
+
+services:
+  elasticsearch:
+    image: "elasticsearch:7.6.2"
+    container_name: "elasticsearch"
+    ports:
+      - "127.0.0.1:9200:9200"
+      # - "127.0.0.1:9300:9300"
+    environment:
+      - "discovery.type=single-node"
+    volumes:
+      - "./elasticsearch/data:/usr/share/elasticsearch/data"
+    networks:
+      - container-network
+
+  kibana:
+    image: "kibana:7.6.2"
+    container_name: "kibana"
+    ports:
+      - "127.0.0.1:5601:5601"
+    environment:
+      - "ELASTICSEARCH_HOSTS=http://elasticsearch:9200"
+      - "I18N_LOCALE=ja-JP"
+    networks:
+      - container-network
+
+  fluentd:
+    build: ./fluentd
+    command: >
+      /usr/bin/fluentd -c /fluentd/etc/fluent.conf -v
+    ports:
+      - "127.0.0.1:24224:24224"
+    depends_on:
+      - "elasticsearch"
+    volumes:
+      - "./log:/fluentd/log"
+      - "./fluentd/fluent.conf:/fluentd/etc/fluent.conf"
+    networks:
+      - container-network
+
+networks:
+  container-network:
+    driver: bridge
+
+x-logging:
+  &default-logging
+  driver: fluentd
+  options:
+    fluentd-address: localhost:24224
+    tag: "log.{{.Name}}"
