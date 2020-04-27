@@ -1,4 +1,2 @@
-FROM fluentd
-USER root
+FROM fluent/fluentd:latest
 RUN gem install fluent-plugin-elasticsearch
-USER fluent

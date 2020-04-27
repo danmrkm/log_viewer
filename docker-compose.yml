@@ -5,9 +5,9 @@ services:
   elasticsearch:
     image: "elasticsearch:7.6.2"
     container_name: "elasticsearch"
-    ports:
-      - "127.0.0.1:9200:9200"
-      # - "127.0.0.1:9300:9300"
+    expose:
+      - "9200"
+      - "9300"
     environment:
       - "discovery.type=single-node"
     volumes:
@@ -27,6 +27,7 @@ services:
       - container-network
 
   fluentd:
+    container_name: "fluentd"
     build: ./fluentd
     command: >
       /usr/bin/fluentd -c /fluentd/etc/fluent.conf -v
@@ -43,10 +44,3 @@ services:
 networks:
   container-network:
     driver: bridge
-
-x-logging:
-  &default-logging
-  driver: fluentd
-  options:
-    fluentd-address: localhost:24224
-    tag: "log.{{.Name}}"
